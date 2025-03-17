@@ -115,6 +115,7 @@ DB_FILE = os.path.join(BASE_DIR, "db.json")
 DB_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "db") 
 os.makedirs(DB_DIR, exist_ok=True)  
 SHORT_LINKS_FILE = os.path.join(BASE_DIR, "short_links.json")
+DECRYPTED_LINKS_FILE = os.path.join(BASE_DIR, "short_links_decrypted.json")
 WIREGUARD_CONFIG_DIR = config["wireguard"]["config_dir"]
 PEERS = []  
 print(f"BASE_DIR: {BASE_DIR}")
@@ -344,6 +345,32 @@ def obtain_api_keys():
         return jsonify({"api_keys": decrypted_keys})
     return jsonify({"api_keys": []})
 
+def decrypt_short_links(
+    input_file=SHORT_LINKS_FILE,
+    output_file=DECRYPTED_LINKS_FILE
+):
+
+    
+    try:
+        with open(input_file, "r") as f:
+            short_links = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print(f"Could not load '{input_file}' or invalid JSON.")
+        return
+
+    decrypted_links = {}
+
+    for short_id, encrypted_link in short_links.items():
+        try:
+            plaintext_url = cipher.decrypt(encrypted_link.encode()).decode()
+            decrypted_links[short_id] = plaintext_url
+        except Exception as e:
+            print(f"Failed to decrypt short_id '{short_id}': {e}")
+
+    with open(output_file, "w") as f:
+        json.dump(decrypted_links, f, indent=4)
+
+    print(f"Decrypted short links have been saved to '{output_file}'.")
 
 def create_secret_key():
     if os.path.exists(SECRET_KEY_FILE):
@@ -1248,8 +1275,16 @@ def create_backup():
 
             db_backup_dir = os.path.join(temp_dir, "db")
             if os.path.exists(db_backup_dir):
-                shutil.rmtree(db_backup_dir) 
+                shutil.rmtree(db_backup_dir)
             shutil.copytree(DB_DIR, db_backup_dir)
+
+            links_backup_dir = os.path.join(temp_dir, "links")
+            os.makedirs(links_backup_dir, exist_ok=True)
+            if os.path.exists(SHORT_LINKS_FILE):
+                shutil.copy2(SHORT_LINKS_FILE, os.path.join(links_backup_dir, os.path.basename(SHORT_LINKS_FILE)))
+            if os.path.exists(DECRYPTED_LINKS_FILE):
+                shutil.copy2(DECRYPTED_LINKS_FILE, os.path.join(links_backup_dir, os.path.basename(DECRYPTED_LINKS_FILE)))
+
             shutil.make_archive(backup_path.replace(".zip", ""), 'zip', temp_dir)
 
         finally:
@@ -1260,7 +1295,6 @@ def create_backup():
     except Exception as e:
         logging.error(f"error in creating backup: {e}")
         return jsonify(error=f"Couldn't create backup: {e}"), 500
-
 
     
 @app.route("/api/restore-automated-backup", methods=["POST"])
@@ -3793,24 +3827,14 @@ def warp_page():
     return render_template(template_name)
 
 short_links = {}
+
 @app.route("/s/<short_id>", methods=["GET"])
 def short_redirect(short_id):
     short_links = load_short_links()
-
-    encrypted_link = short_links.get(short_id)
-    if not encrypted_link:
+    long_link = short_links.get(short_id)
+    if not long_link:
         return "Link not found or already removed", 404
-
-    try:
-        long_link = cipher.decrypt(encrypted_link.encode()).decode()
-    except Exception as e:
-        print(f"Decryption error: {e}")
-        return "Invalid link", 404
-
     return redirect(long_link)
-
-
-
 
 
 def load_short_links():
@@ -3820,9 +3844,11 @@ def load_short_links():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_short_links(short_links):
     with open(SHORT_LINKS_FILE, "w") as file:
         json.dump(short_links, file, indent=4)
+
 
 @app.route("/api/create-peer", methods=["POST"])
 def create_peer():
@@ -3833,7 +3859,6 @@ def create_peer():
         peer_name = data.get('peerName')
         if not peer_name or not re.match(r'^[a-zA-Z0-9_-]+$', peer_name):
             return jsonify({"error": "Wrong peer name. Only letters, numbers, underscores, and dashes are allowed."}), 400
-
 
         peer_ip = data.get('peerIp')
         try:
@@ -3949,7 +3974,6 @@ def create_peer():
                     conf.write(peer_config)
 
                 short_links = load_short_links()
-
                 long_interactive_link = url_for(
                     'peer_details',
                     peer_name=peer['peer_name'],
@@ -3957,10 +3981,9 @@ def create_peer():
                     token=peer_token,
                     _external=True
                 )
-                encrypted_link = cipher.encrypt(long_interactive_link.encode())
                 short_id = secrets.token_urlsafe(8)
                 if short_id not in short_links:  
-                    short_links[short_id] = encrypted_link.decode()
+                    short_links[short_id] = long_interactive_link
                     save_short_links(short_links)
 
                 short_interactive_link = url_for('short_redirect', short_id=short_id, _external=True)
@@ -4055,10 +4078,9 @@ def create_peer():
                         token=peer_token,
                         _external=True
                     )
-                    encrypted_link = cipher.encrypt(long_interactive_link.encode())
                     short_id = secrets.token_urlsafe(8)
                     if short_id not in short_links:  
-                        short_links[short_id] = encrypted_link.decode()
+                        short_links[short_id] = long_interactive_link
                         save_short_links(short_links)
 
                     short_interactive_link = url_for('short_redirect', short_id=short_id, _external=True)
@@ -4081,7 +4103,6 @@ def create_peer():
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
-
 @app.route("/api/get-peer-link", methods=["GET"])
 def get_peer_short_link():
     peer_name = request.args.get("peerName")
@@ -4091,36 +4112,21 @@ def get_peer_short_link():
         return jsonify({"error": "Peer name and config file are required."}), 400
 
     try:
-        with json_lock:
-            peers = load_peers_with_lock(config_file)
-            peer = next((p for p in peers if p["peer_name"] == peer_name), None)
-            if not peer:
-                return jsonify({"error": f"Peer '{peer_name}' not found in {config_file}."}), 404
+        short_links = load_short_links()
+        short_id = None
+        for key, value in short_links.items():
+            if f"peer_name={peer_name}" in value and f"config_file={config_file}" in value:
+                short_id = key
+                break
 
-            short_links = load_short_links()
-            long_link = url_for(
-                'peer_details',
-                peer_name=peer_name,
-                config_file=config_file,
-                token=peer["token"],
-                _external=True
-            )
-
-            short_id = next(
-                (key for key, value in short_links.items()
-                 if cipher.decrypt(value.encode()).decode() == long_link),
-                None
-            )
-
-            if short_id:
-                short_link = url_for('short_redirect', short_id=short_id, _external=True)
-                return jsonify({"short_link": short_link})
-            else:
-                return jsonify({"error": "Short link not found."}), 404
+        if short_id:
+            short_link = url_for('short_redirect', short_id=short_id, _external=True)
+            return jsonify({"short_link": short_link})
+        else:
+            return jsonify({"error": "Short link not found."}), 404
     except Exception as e:
-        print(f"error in fetching peer short link: {e}")
-        return jsonify({"error": f"error happened: {str(e)}"}), 500
-
+        print(f"Error in fetching peer short link: {e}")
+        return jsonify({"error": f"Error happened: {str(e)}"}), 500
 
 def generate_peer_token():
     return secrets.token_urlsafe(16)
@@ -5101,11 +5107,15 @@ scheduler = BackgroundScheduler(
 )
 
 
-
 if __name__ == "__main__":
     create_shortlinks()
+    decrypt_short_links(
+        input_file=os.path.join(BASE_DIR, "short_links.json"),
+        output_file=os.path.join(BASE_DIR, "short_links_decrypted.json")
+    )
     config = load_config()
     flask_port = config["flask"]["port"]
+    domain = config["flask"].get("domain", "localhost")
     use_tls = config["flask"]["tls"]
     cert_path = config["flask"].get("cert_path")
     key_path = config["flask"].get("key_path")
