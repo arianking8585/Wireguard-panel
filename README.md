@@ -29,6 +29,23 @@
 
 --------
 
+<div align="right">
+  <details>
+    <summary><strong><img src="https://github.com/user-attachments/assets/2e0fec0f-69b6-4c1d-b2e5-f755f40211c4" alt="Image"> نحوه انتقال short links از یک سرور به سروری دیگر (بخوانید)</strong></summary>
+
+------------------------------------ 
+
+- در این ورزن جدید پنل، دیگر لینک کوتاه encrypted نشده اند و برای خواندن انها هم به جای انکه decryption انجام شود، تنها از انها کپی میشود. اینکار برای افرادی که سرور زیاد عوض میکنند مناسب میباشد
+- نحوه کار به این صورت است. اگر از ورژن قدیمی پنل استفاده کرده اید، نخست پنل را اپدیت کنید و پنل را مانند قبل اجرا کنید. سپس فایل bash را اجرا میکنید. بین http یا https بسته به نیاز خود انتخاب میکنید. ایپی یا دامین و پورت سرور جدید را وارد میکنید تا تمام لینک های کوتاه به روز رسانی شود. سپس پنل را با دستور روبرو systemctl restart wireguard-panel ریست میکنید
+- دستور فایل bash هم در قسمت پایین قرار میدهم
+```
+bash <(curl -Ls https://raw.githubusercontent.com/Azumi67/Wireguard-panel/refs/heads/main/short_link.sh --ipv4)
+
+```
+- توجه کنید که قبل از استفاده از ورژن جدید، انرا در سروری دیگر تست نمایید تا با مشکلاتی روبرو نشوید. نحوه تبدیل کردن لینک کوتاه سرور قبل در سرور جدید را در قسمت بالا توضیح دادم.
+------------------------------------ 
+  </details>
+</div>
  <div align="right">
   <details>
     <summary><strong><img src="https://github.com/user-attachments/assets/bf3c8113-cdd1-4c57-a744-796d7530d565" alt="Image"> مشکلات تایم زون مختلف (بخوانید)</strong></summary>
