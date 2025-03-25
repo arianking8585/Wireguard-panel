@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/template.css') }}" />
     <script defer src="{{ url_for('static', filename='js/template.js') }}"></script>
-    <link rel="stylesheet" href="static/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
 </head>
 
 <body>
@@ -39,7 +39,6 @@
                 <p id="data-limit">در حال بارگذاری...</p>
             </div>
 
-
             <div class="info-box">
                 <h2>حجم باقی مانده</h2>
                 <div class="progress-bar">
@@ -58,15 +57,24 @@
 
             <div class="footer-actions">
                 <button id="refresh-btn" class="refresh-btn">بروز رسانی</button>
-
                 <button id="download-config-btn" class="icon-btn">
                     <i class="fa-solid fa-download"></i>
                 </button>
-
                 <button id="qr-code-btn" class="icon-btn">
                     <i class="fa-solid fa-qrcode"></i>
                 </button>
             </div>
+        </div>
+
+        <div class="download-clients">
+            <h2>دانلود کلاینت وایرگارد</h2>
+            <a href="https://apps.apple.com/us/app/wireguard/id1441195209" target="_blank" class="client-download">
+                <i class="fa-brands fa-apple"></i> iOS
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank"
+                class="client-download">
+                <i class="fa-brands fa-android"></i> Android
+            </a>
         </div>
 
         <footer class="footer">
