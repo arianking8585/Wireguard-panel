@@ -1577,7 +1577,7 @@ async def download_peerconfig_general(update: Update, context: CallbackContext):
                         f"⏳ *تاریخ انقضا:* {expiry_days} روز\n"
                         f"📅 *تاریخ انقضا (شمسی):* {expiry_date_jalali_str}\n"
                         f"📏 *میزان حجم:* {data_limit}\n\n"
-                        f"🔗 * لینک کوتاه کانفیگ:*\n"
+                        f"🔗 *لینک کوتاه کانفیگ:*\n"
                         f"[{short_link}]({short_link})\n\n"
                         f"📄 *محتوای فایل تنظیمات:*\n"
                         f"```\n{peer_config}\n```"
@@ -1596,6 +1596,7 @@ async def download_peerconfig_general(update: Update, context: CallbackContext):
                     await query.message.reply_text(f"❌ خطا: {error.get('error', 'عدم توانایی در دریافت فایل تنظیمات')}")
         except Exception as e:
             await query.message.reply_text(f"❌ خطا: {str(e)}")
+
 
 async def generate_peerqr_general(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -1683,7 +1684,6 @@ async def generate_peerqr_general(update: Update, context: CallbackContext):
             )
         except Exception as e:
             await query.message.reply_text(f"❌ خطا: {str(e)}")
-
 
 
 async def init_deletepeer(update: Update, context: CallbackContext):
