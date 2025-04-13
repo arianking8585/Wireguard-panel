@@ -2827,14 +2827,16 @@ def download_peer_config():
         if peer_config is None:
             return jsonify({"error": error_message}), status_code
 
+        # mimetype to avoid mobile .txt extension
         return Response(
             peer_config,
-            mimetype="text/plain",
-            headers={"Content-Disposition": f"attachment; filename={peer_name}.conf"}
+            mimetype="application/octet-stream",
+            headers={"Content-Disposition": f'attachment; filename="{peer_name}.conf"'}
         )
     except Exception as e:
         logger.error(f"error in /api/download-peer-config: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
 
 
 @app.route("/api/download-peer-qr", methods=["GET"])
@@ -4376,7 +4378,7 @@ def delete_peer():
                             inside_peer_block = True
                             continue
                     if inside_peer_block:
-                        if line.strip() == "":  
+                        if line.strip() == "":
                             inside_peer_block = False
                         continue
                     new_lines.append(line)
@@ -4392,23 +4394,23 @@ def delete_peer():
             peers = [p for p in peers if p["peer_name"] != peer_name]
             save_peers_with_lock(config_file, peers)
 
-        with short_links_lock:  
-            short_links = load_short_links()  
-
+        with short_links_lock:
+            short_links = load_short_links()
             link_to_delete = None
-            for short_id, encrypted_link in short_links.items():
+
+            for short_id, stored_value in short_links.items():
                 try:
-                    long_link = cipher.decrypt(encrypted_link.encode()).decode()
-                    if f"peer_name={peer_name}" in long_link:
-                        link_to_delete = short_id
-                        break
+                    long_link = cipher.decrypt(stored_value.encode()).decode()
                 except Exception as e:
-                    logging.error(f"Error decrypting short link: {e}")
-                    continue
+                    long_link = stored_value
+
+                if f"peer_name={peer_name}" in long_link:
+                    link_to_delete = short_id
+                    break
 
             if link_to_delete:
-                del short_links[link_to_delete]  
-                save_short_links(short_links)  
+                del short_links[link_to_delete]
+                save_short_links(short_links)
                 logging.info(f"Deleted short link for peer '{peer_name}'.")
 
         return jsonify(success=True, message=f"Peer '{peer_name}' has been deleted dynamically.")
@@ -5274,5 +5276,4 @@ if __name__ == "__main__":
         logging.info("Shutting down application.")
         if scheduler:
             scheduler.shutdown(wait=False)
-
 
