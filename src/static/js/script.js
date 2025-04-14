@@ -148,6 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const mtu = parseInt(document.getElementById("mtu").value) || 1280; 
             const bulkAdd = document.getElementById("bulkAdd").checked;
             const bulkPeerCount = bulkAdd ? parseInt(document.getElementById("bulkPeerCount").value) || 1 : 1;
+            const allowedIps = document.getElementById("allowedIps").value.trim();
 
             if (!peerName || !peerIp || !dataLimit || !config) {
                 showAlert("Please fill in all required fields.");
@@ -179,7 +180,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 firstUsage,
                 persistentKeepalive, 
                 mtu, 
-                bulkCount: bulkAdd ? bulkPeerCount : 1
+                bulkCount: bulkAdd ? bulkPeerCount : 1,
+                allowedIps: allowedIps
             };
 
             console.log("Payload being sent to backend:", payload);
@@ -220,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (bulkPeerCountContainer) {
                         bulkPeerCountContainer.style.display = "none";
                     }
+                    document.getElementById("allowedIps").value = "0.0.0.0/0, ::/0";
                     const createPeerModal = document.getElementById("createPeerModal");
                     if (createPeerModal) {
                         createPeerModal.style.display = "none";
