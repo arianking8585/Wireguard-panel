@@ -277,7 +277,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="persistentKeepalive">Persistent Keepalive (seconds):</label>
+                    <label for="persistentKeepalive">Persistent Keepalive :</label>
                     <input type="number" id="persistentKeepalive" placeholder="25 (default)" min="0" value="25"
                         required>
                 </div>
@@ -286,6 +286,11 @@
                     <label for="mtu">MTU:</label>
                     <input type="number" id="mtu" placeholder="1280 (default)" min="1280" value="1280" required>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label for="allowedIps">Allowed IPs :</label>
+                <input type="text" id="allowedIps" placeholder="0.0.0.0/0, ::/0" value="0.0.0.0/0, ::/0">
             </div>
 
             <h3>Set Expiry Duration:</h3>
