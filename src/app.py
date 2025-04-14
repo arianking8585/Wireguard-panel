@@ -2207,6 +2207,7 @@ def generate_template():
         mtu = peer.get("mtu", 1280)
         private_key = peer.get("private_key", "N/A")
         public_key = peer.get("public_key", "N/A")
+        allowed_ips = peer.get("allowed_ips") or "0.0.0.0/0, ::/0"
 
         server_ip = obtain_server_public_ip()
         wg_config_file = f"{config_name}.conf"
@@ -2221,7 +2222,7 @@ MTU = {mtu}
 
 [Peer]
 PublicKey = {public_key}
-AllowedIPs = 0.0.0.0/0, ::/0
+AllowedIPs = {allowed_ips}
 Endpoint = {server_ip}:{server_port}
 PersistentKeepalive = {persistent_keepalive}
 """.strip()
@@ -2239,8 +2240,6 @@ PersistentKeepalive = {persistent_keepalive}
     except Exception as e:
         app.logger.exception("Couldn't generate template.")
         return jsonify({"error": f"Couldn't generate template: {str(e)}"}), 500
-
-
 
 
 @app.route('/api/delete-template', methods=['POST'])
@@ -2265,81 +2264,6 @@ def delete_template():
         return jsonify({"error": f"Couldn't delete file: {str(e)}"}), 500
 
 
-@app.route('/api/bot-peer-details-fa', methods=['GET'])
-def get_peer_details_for_bot_fa():
-    peer_name = request.args.get('peerName')
-    config_name = request.args.get('configName')
-
-    if not peer_name:
-        return jsonify({"error": "Peer name is required"}), 400
-
-    if not config_name:
-        return jsonify({"error": "Config name is required"}), 400
-
-    try:
-        peers = load_peers_from_json(config_name)
-        if not peers:
-            return jsonify({"error": f"No peers found for config '{config_name}'"}), 404
-
-        peer = next((p for p in peers if p["peer_name"] == peer_name), None)
-        if not peer:
-            return jsonify({"error": f"Peer '{peer_name}' not found"}), 404
-
-        peer_ip = peer.get('peer_ip', None)
-        if not peer_ip:
-            return jsonify({"error": "Invalid or missing peer IP"}), 400
-
-        app.logger.debug(f"Peer data: {peer}")
-
-        qr_code = (
-            f"[Interface]\n"
-            f"PrivateKey = {peer.get('private_key', 'YOUR_PRIVATE_KEY')}\n"
-            f"Address = {peer_ip}/32\n"
-            f"DNS = {peer.get('dns', '1.1.1.1')}\n\n"
-            f"[Peer]\n"
-            f"PublicKey = {peer.get('public_key', 'YOUR_PUBLIC_KEY')}\n"
-            f"AllowedIPs = 0.0.0.0/0, ::/0\n"
-            f"PersistentKeepalive = {peer.get('persistent_keepalive', 25)}"
-        )
-
-        created_at_str = peer.get("created_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"))
-        created_at = datetime.strptime(created_at_str, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
-        expiry_days = peer.get("expiry_days", 30)
-        expiry = created_at + timedelta(days=expiry_days)
-        now = datetime.now(timezone.utc)
-
-        expiry_human = (
-            f"{(expiry - now).days} روز باقی مانده" if (expiry - now).total_seconds() > 0 else "منقضی"
-        )
-
-        data_limit = peer.get('limit', 'N/A')
-        used_data = peer.get('used', 0)
-        remaining_data = peer.get('remaining', 0)
-
-        app.logger.debug(f"Data limit: {data_limit}, Used data: {used_data}, Remaining data: {remaining_data}")
-
-        peer_details = {
-            "peer_name": peer_name,
-            "peer_ip": peer_ip,
-            "qr_code": qr_code,
-            "dns": peer.get('dns', '1.1.1.1'),
-            "limit": data_limit,
-            "used": used_data,
-            "remaining": remaining_data,
-            "created_at": created_at_str,
-            "expiry": expiry.strftime("%Y-%m-%d %H:%M:%S"),
-            "expiry_human": expiry_human
-        }
-
-        app.logger.debug(f"Peer details to return: {peer_details}")
-
-        return jsonify(peer_details), 200
-
-    except Exception as e:
-        app.logger.error(f"error in fetching peer details for bot: {str(e)}")
-        return jsonify({"error": "Couldn't fetch peer details"}), 500
-
-
 @app.route('/api/bot-peer-details', methods=['GET'])
 def get_peer_details_for_bot():
     peer_name = request.args.get('peerName')
@@ -2360,11 +2284,13 @@ def get_peer_details_for_bot():
         if not peer:
             return jsonify({"error": f"Peer '{peer_name}' not found"}), 404
 
-        peer_ip = peer.get('peer_ip', None)
+        peer_ip = peer.get('peer_ip')
         if not peer_ip:
             return jsonify({"error": "Invalid or missing peer IP"}), 400
 
         app.logger.debug(f"Peer data: {peer}")
+
+        allowed_ips = peer.get("allowed_ips") or "0.0.0.0/0, ::/0"
 
         qr_code = (
             f"[Interface]\n"
@@ -2373,7 +2299,7 @@ def get_peer_details_for_bot():
             f"DNS = {peer.get('dns', '1.1.1.1')}\n\n"
             f"[Peer]\n"
             f"PublicKey = {peer.get('public_key', 'YOUR_PUBLIC_KEY')}\n"
-            f"AllowedIPs = 0.0.0.0/0, ::/0\n"
+            f"AllowedIPs = {allowed_ips}\n"
             f"PersistentKeepalive = {peer.get('persistent_keepalive', 25)}"
         )
 
@@ -2411,9 +2337,86 @@ def get_peer_details_for_bot():
         return jsonify(peer_details), 200
 
     except Exception as e:
-        app.logger.error(f"error in fetching peer details for bot: {str(e)}")
+        app.logger.error(f"Error in fetching peer details for bot: {str(e)}")
         return jsonify({"error": "Couldn't fetch peer details"}), 500
-    
+
+@app.route('/api/bot-peer-details-fa', methods=['GET'])
+def get_peer_details_for_bot_fa():
+    peer_name = request.args.get('peerName')
+    config_name = request.args.get('configName')
+
+    if not peer_name:
+        return jsonify({"error": "Peer name is required"}), 400
+
+    if not config_name:
+        return jsonify({"error": "Config name is required"}), 400
+
+    try:
+        peers = load_peers_from_json(config_name)
+        if not peers:
+            return jsonify({"error": f"No peers found for config '{config_name}'"}), 404
+
+        peer = next((p for p in peers if p["peer_name"] == peer_name), None)
+        if not peer:
+            return jsonify({"error": f"Peer '{peer_name}' not found"}), 404
+
+        peer_ip = peer.get('peer_ip')
+        if not peer_ip:
+            return jsonify({"error": "Invalid or missing peer IP"}), 400
+
+        app.logger.debug(f"Peer data: {peer}")
+
+        allowed_ips = peer.get("allowed_ips") or "0.0.0.0/0, ::/0"
+
+        qr_code = (
+            f"[Interface]\n"
+            f"PrivateKey = {peer.get('private_key', 'YOUR_PRIVATE_KEY')}\n"
+            f"Address = {peer_ip}/32\n"
+            f"DNS = {peer.get('dns', '1.1.1.1')}\n\n"
+            f"[Peer]\n"
+            f"PublicKey = {peer.get('public_key', 'YOUR_PUBLIC_KEY')}\n"
+            f"AllowedIPs = {allowed_ips}\n"
+            f"PersistentKeepalive = {peer.get('persistent_keepalive', 25)}"
+        )
+
+        created_at_str = peer.get("created_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"))
+        created_at = datetime.strptime(created_at_str, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        expiry_days = peer.get("expiry_days", 30)
+        expiry = created_at + timedelta(days=expiry_days)
+        now = datetime.now(timezone.utc)
+
+        expiry_human = (
+            f"{(expiry - now).days} روز باقی مانده" if (expiry - now).total_seconds() > 0 else "منقضی"
+        )
+
+        data_limit = peer.get('limit', 'N/A')
+        used_data = peer.get('used', 0)
+        remaining_data = peer.get('remaining', 0)
+
+        app.logger.debug(f"Data limit: {data_limit}, Used data: {used_data}, Remaining data: {remaining_data}")
+
+        peer_details = {
+            "peer_name": peer_name,
+            "peer_ip": peer_ip,
+            "qr_code": qr_code,
+            "dns": peer.get('dns', '1.1.1.1'),
+            "limit": data_limit,
+            "used": used_data,
+            "remaining": remaining_data,
+            "created_at": created_at_str,
+            "expiry": expiry.strftime("%Y-%m-%d %H:%M:%S"),
+            "expiry_human": expiry_human
+        }
+
+        app.logger.debug(f"Peer details to return: {peer_details}")
+
+        return jsonify(peer_details), 200
+
+    except Exception as e:
+        app.logger.error(f"Error in fetching peer details for bot (fa): {str(e)}")
+        return jsonify({"error": "Couldn't fetch peer details"}), 500
+
+
 @app.route("/api/block-peer", methods=["POST"])
 def block_peer():
     try:
@@ -2621,23 +2624,22 @@ def export_peer_qr():
 @app.route("/api/export-peer", methods=["GET"])
 def export_peer():
     peer_name = request.args.get("peerName")
-    config_file = request.args.get("config", "wg0.conf") 
-
+    config_file = request.args.get("config", "wg0.conf")
     if not peer_name:
         return jsonify(error="Peer name is required to export config."), 400
 
     try:
         peers = load_peers_from_json(config_file)
     except Exception as e:
-        return jsonify(error=f"error in reading JSON for {config_file}: {str(e)}"), 500
+        return jsonify(error=f"Error reading JSON for {config_file}: {str(e)}"), 500
 
     peer = next((p for p in peers if p["peer_name"] == peer_name and p["config"] == config_file), None)
     if not peer:
         return jsonify(error=f"Peer '{peer_name}' not found in {config_file}."), 404
 
-    dns = peer.get("dns", "1.1.1.1") 
-    persistent_keepalive = peer.get("persistent_keepalive", 25)  
-    mtu = peer.get("mtu", 1280)  
+    dns = peer.get("dns", "1.1.1.1")
+    persistent_keepalive = peer.get("persistent_keepalive", 25)
+    mtu = peer.get("mtu", 1280)
 
     try:
         server_public_key = obtain_public_key_conf(config_file)
@@ -2645,9 +2647,10 @@ def export_peer():
         server_ip = custom_ip or obtain_server_public_ip()
         server_port = server_listen_port(config_file)
     except ValueError as e:
-        return jsonify(error=f"error in retrieving server details: {e}"), 500
+        return jsonify(error=f"Error retrieving server details: {e}"), 500
 
     address_cidr = f"{peer['peer_ip']}/32"
+    allowed_ips = peer.get("allowed_ips") or "0.0.0.0/0, ::/0"
 
     peer_config = (
         f"[Interface]\n"
@@ -2659,7 +2662,7 @@ def export_peer():
         f"[Peer]\n"
         f"PublicKey = {server_public_key}\n"
         f"Endpoint = {server_ip}:{server_port}\n"
-        f"AllowedIPs = 0.0.0.0/0, ::/0\n"
+        f"AllowedIPs = {allowed_ips}\n"
         f"PersistentKeepalive = {persistent_keepalive}\n"
     )
 
@@ -2672,17 +2675,16 @@ def export_peer():
             temp_file.name,
             as_attachment=True,
             download_name=f"{peer_name}.conf",  
-            mimetype="application/octet-stream", 
+            mimetype="application/octet-stream"
         )
 
-        
         response.cache_control.no_cache = True
         response.cache_control.no_store = True
         response.cache_control.must_revalidate = True
 
         return response
     except Exception as e:
-        return jsonify(error=f"error in creating config file: {str(e)}"), 500
+        return jsonify(error=f"Error creating config file: {str(e)}"), 500
 
 
 @app.route("/api/qr-code", methods=["GET"])
@@ -2696,7 +2698,7 @@ def generate_qr_code():
     try:
         peers = load_peers_from_json(config_file)
     except Exception as e:
-        return jsonify(error=f"error in reading JSON for {config_file}: {str(e)}"), 500
+        return jsonify(error=f"Error reading JSON for {config_file}: {str(e)}"), 500
 
     peer = next((p for p in peers if p["peer_name"] == peer_name and p["config"] == config_file), None)
     if not peer:
@@ -2712,9 +2714,10 @@ def generate_qr_code():
         server_ip = custom_ip or obtain_server_public_ip()
         server_port = server_listen_port(config_file)
     except ValueError as e:
-        return jsonify(error=f"error in retrieving server details: {e}"), 500
+        return jsonify(error=f"Error retrieving server details: {e}"), 500
 
     address_cidr = f"{peer['peer_ip']}/32"
+    allowed_ips = peer.get("allowed_ips") or "0.0.0.0/0, ::/0"
 
     peer_config = (
         f"[Interface]\n"
@@ -2726,7 +2729,7 @@ def generate_qr_code():
         f"[Peer]\n"
         f"PublicKey = {server_public_key}\n"
         f"Endpoint = {server_ip}:{server_port}\n"
-        f"AllowedIPs = 0.0.0.0/0, ::/0\n"
+        f"AllowedIPs = {allowed_ips}\n"
         f"PersistentKeepalive = {persistent_keepalive}\n"
     )
 
@@ -2771,20 +2774,23 @@ def get_peers():
 
 
 @app.route("/api/export-peer-telegram", methods=["GET"])
-def export_peer_telegram(peer_name, config_file="wg0.conf"):
+def export_peer_telegram(peer_name=None, config_file="wg0.conf"):
+    if peer_name is None:
+        peer_name = request.args.get("peerName")
+    if not config_file:
+        config_file = request.args.get("config", "wg0.conf")
+    if not peer_name:
+        return None, "Peer name is required to export config.", 400
+
     try:
-        if not peer_name:
-            return None, "Peer name is required to export config.", 400
-
         peers = load_peers_from_json(config_file)
-
         peer = next((p for p in peers if p["peer_name"] == peer_name and p["config"] == config_file), None)
         if not peer:
             return None, f"Peer '{peer_name}' not found in {config_file}.", 404
 
-        dns = peer.get("dns", "1.1.1.1")  
-        persistent_keepalive = peer.get("persistent_keepalive", 25)  
-        mtu = peer.get("mtu", 1280)  
+        dns = peer.get("dns", "1.1.1.1")
+        persistent_keepalive = peer.get("persistent_keepalive", 25)
+        mtu = peer.get("mtu", 1280)
 
         server_public_key = obtain_public_key_conf(config_file)
         custom_ip = obtain_custom_ip()
@@ -2792,6 +2798,7 @@ def export_peer_telegram(peer_name, config_file="wg0.conf"):
         server_port = server_listen_port(config_file)
 
         address_cidr = f"{peer['peer_ip']}/32"
+        allowed_ips = peer.get("allowed_ips") or "0.0.0.0/0, ::/0"
         peer_config = (
             f"[Interface]\n"
             f"PrivateKey = {peer['private_key']}\n"
@@ -2802,15 +2809,15 @@ def export_peer_telegram(peer_name, config_file="wg0.conf"):
             f"[Peer]\n"
             f"PublicKey = {server_public_key}\n"
             f"Endpoint = {server_ip}:{server_port}\n"
-            f"AllowedIPs = 0.0.0.0/0, ::/0\n"
+            f"AllowedIPs = {allowed_ips}\n"
             f"PersistentKeepalive = {persistent_keepalive}\n"
         )
-
         return peer_config, None, 200
     except Exception as e:
         logger.error(f"error in export_peer_telegram: {e}")
         return None, "Internal server error.", 500
 
+    
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -2827,7 +2834,6 @@ def download_peer_config():
         if peer_config is None:
             return jsonify({"error": error_message}), status_code
 
-        # mimetype to avoid mobile .txt extension
         return Response(
             peer_config,
             mimetype="application/octet-stream",
@@ -2836,7 +2842,6 @@ def download_peer_config():
     except Exception as e:
         logger.error(f"error in /api/download-peer-config: {e}")
         return jsonify({"error": "Internal server error"}), 500
-
 
 
 @app.route("/api/download-peer-qr", methods=["GET"])
@@ -3892,6 +3897,8 @@ def create_peer():
         persistent_keepalive = data.get("persistentKeepalive", 25)
         mtu = data.get("mtu", 1280)
 
+        allowed_ips = data.get("allowedIps", "0.0.0.0/0, ::/0")
+        
         print(f"First usage set to: {first_usage}")
 
         total_expiry_minutes = (
@@ -3936,7 +3943,7 @@ def create_peer():
                     "expiry_blocked": False,
                     "private_key": client_private_key,
                     "public_key": client_public_key,
-                    "token": peer_token,  
+                    "token": peer_token,
                     "expiry_time": {
                         "months": expiry_months,
                         "days": expiry_days,
@@ -3949,7 +3956,8 @@ def create_peer():
                     "mtu": mtu,
                     "config": config_file,
                     "last_received_bytes": 0,
-                    "last_sent_bytes": 0
+                    "last_sent_bytes": 0,
+                    "allowed_ips": allowed_ips 
                 }
 
                 peers.append(peer)
@@ -4035,7 +4043,7 @@ def create_peer():
                         "expiry_blocked": False,
                         "private_key": client_private_key,
                         "public_key": client_public_key,
-                        "token": peer_token,  
+                        "token": peer_token,
                         "expiry_time": {
                             "months": expiry_months,
                             "days": expiry_days,
@@ -4048,7 +4056,8 @@ def create_peer():
                         "mtu": mtu,
                         "config": config_file,
                         "last_received_bytes": 0,
-                        "last_sent_bytes": 0
+                        "last_sent_bytes": 0,
+                        "allowed_ips": allowed_ips  
                     }
 
                     peers.append(peer)
@@ -4103,6 +4112,7 @@ def create_peer():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 
 
 @app.route("/api/get-peer-link", methods=["GET"])
