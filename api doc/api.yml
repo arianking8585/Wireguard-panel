@@ -54,6 +54,72 @@ api_documentation:
       - FileNotFoundError: "If the Wireguard configuration directory (`/etc/wireguard`) does not exist, a `404 Not Found` response is returned."
       - GeneralException: "For other errors, a `500 Internal Server Error` is returned with the error message."
 
+  - endpoint: "/api/login"
+    method: "post"
+      summary: Login a user via API
+      description: 
+        Authenticates a user with a username and password. 
+        On success, stores the session and returns a confirmation message.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: Azumi
+                password:
+                  type: string
+                  example: Azumi
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful!
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Username and password are required.
+        '401':
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Wrong username or password.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error: User database missing.
+
   - endpoint: "/api/health"
     method: "GET"
     description: |
