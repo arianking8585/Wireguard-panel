@@ -60,7 +60,7 @@
     border-radius: 4px;
     cursor: pointer;
     position: fixed;
-    bottom: 10vh;
+    bottom: 8vh;
     left: 50%;
     transform: translateX(-50%);
 }
