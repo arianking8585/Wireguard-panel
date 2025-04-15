@@ -1504,6 +1504,28 @@ def restore_automated_backup():
         return jsonify(error=f"Couldn't restore automated backup: {e}"), 500
 
 
+@app.route("/api/reset-user", methods=["POST"])
+def api_reset_user():
+    try:
+        data = request.get_json()
+        username = data.get("username")
+        password = data.get("password")
+
+        if not username or not password:
+            return jsonify({"error": "Username and password required"}), 400
+
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        users = {username: hashed_password}
+
+        with open(DB_FILE, "w") as f:
+            json.dump(users, f)
+
+        return jsonify({"message": "Credentials reset successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     language = session.get('language', 'en') 
@@ -1523,6 +1545,11 @@ def register():
 
     username = request.form.get("username")
     password = request.form.get("password")
+    confirm_password = request.form.get("confirm_password")
+
+    if password != confirm_password:
+        flash("Passwords do not match.", "error")
+        return redirect("/register")
 
     if username in users:
         flash("Username already exists!", "error")
