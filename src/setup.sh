@@ -167,15 +167,84 @@ display_menu() {
     echo -e "${WHITE}  1)${YELLOW} IPV4/6 Forward${NC}"
     echo -e "${WHITE}  2)${GREEN} Install Requirements${NC}"
     echo -e "${WHITE}  3)${YELLOW} Set up Virtual Environment${NC}"
-    echo -e "${WHITE}  4)${BLUE} Create Flask & Gunicorn Configs${NC}"
+    echo -e "${WHITE}  4)${BLUE} Create${YELLOW}/${GREEN}Reset${BLUE} Flask & Gunicorn Configs${NC}"
     echo -e "${WHITE}  5)${LIGHT_GREEN} Create Wireguard Interface${NC}"
     echo -e "${WHITE}  6)${BLUE} Set up Permissions${NC}"
     echo -e "${WHITE}  7)${YELLOW} Set up Wireguard Panel as a Service${NC}"
     echo -e "${WHITE}  8)${RED} Uninstall${NC}"
     echo -e "${WHITE}  9)${CYAN} Restart Wireguard Panel or Telegram Bot${NC}"
     echo -e "${WHITE}  10)${GREEN} Update Panel${NC}" 
+    echo -e "${WHITE}  11)${YELLOW} RESET Username & Password${NC}" 
     echo -e "${WHITE}  q)${RED} Exit${NC}"
     echo -e "${CYAN}═════════════════════════════════════════════════════════════════════${NC}"
+}
+
+
+reset_credentials() {
+    echo -e "${CYAN}Resetting username and password via API...${NC}"
+
+    if ! systemctl is-active --quiet wireguard-panel.service; then
+        echo -e "${LIGHT_RED}✘ wireguard-panel service is not running. Please start it first using:${NC}"
+        echo -e "${LIGHT_YELLOW}sudo systemctl start wireguard-panel.service${NC}"
+        echo -e "${CYAN}Press Enter to return...${NC}"
+        read
+        return 1
+    fi
+
+    read -p "$(echo -e "${LIGHT_YELLOW}Enter ${GREEN}new username${LIGHT_YELLOW}: ${NC}")" NEW_USERNAME
+    read -s -p "$(echo -e "${LIGHT_YELLOW}Enter ${GREEN}new password${LIGHT_YELLOW}: ${NC}")" NEW_PASSWORD
+    echo ""
+    read -s -p "$(echo -e "${LIGHT_YELLOW}Confirm ${GREEN}password${LIGHT_YELLOW}: ${NC}")" CONFIRM_PASSWORD
+    echo ""
+
+    if [ "$NEW_PASSWORD" != "$CONFIRM_PASSWORD" ]; then
+        echo -e "${LIGHT_RED}✘ Passwords do not match. Aborting.${NC}"
+        return 1
+    fi
+
+    CONFIG_FILE="/usr/local/bin/Wireguard-panel/src/config.yaml"
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo -e "${LIGHT_RED}[Error]: config.yaml not found at $CONFIG_FILE${NC}"
+        return 1
+    fi
+
+    FLASK_PORT=$(grep -A 6 "^flask:" "$CONFIG_FILE" | grep "port:" | awk '{print $2}')
+    TLS_ENABLED=$(grep -A 6 "^flask:" "$CONFIG_FILE" | grep "tls:" | awk '{print $2}')
+    CERT_PATH=$(grep -A 6 "^flask:" "$CONFIG_FILE" | grep "cert_path:" | awk '{print $2}' | tr -d '"')
+
+    PROTOCOL="http"
+    HOST="127.0.0.1"
+
+    if [[ "$TLS_ENABLED" == "true" ]]; then
+        PROTOCOL="https"
+        HOST=$(echo "$CERT_PATH" | awk -F'/' '{print $(NF-1)}')
+    fi
+
+    API_URL="$PROTOCOL://$HOST:$FLASK_PORT/api/reset-user"
+    echo -e "${CYAN}Sending credentials to $API_URL...${NC}"
+
+    RESPONSE=$(curl -sk -X POST "$API_URL" \
+        -H "Content-Type: application/json" \
+        -d "{\"username\": \"$NEW_USERNAME\", \"password\": \"$NEW_PASSWORD\"}")
+
+    if echo "$RESPONSE" | grep -q "message"; then
+        echo -e "${LIGHT_GREEN}✔ Credentials reset successfully via API.${NC}"
+        echo -e "${CYAN}Saved credentials:${NC}"
+        echo -e "${CYAN}═════════════════════════════════════════${NC}"
+        echo -e "${GREEN}Username:${NC} $NEW_USERNAME"
+        echo -e "${GREEN}Password:${NC} $NEW_PASSWORD"
+        echo -e "${CYAN}═════════════════════════════════════════${NC}"
+
+        echo -e "${CYAN}Restarting wireguard-panel service...${NC}"
+        sudo systemctl restart wireguard-panel.service && echo -e "${LIGHT_GREEN}✔ Service restarted successfully.${NC}" || echo -e "${LIGHT_RED}✘ Failed to restart service.${NC}"
+    else
+        echo -e "${LIGHT_RED}✘ Failed to reset credentials. Server response:${NC}"
+        echo "$RESPONSE"
+    fi
+
+    echo -e "${CYAN}Press Enter to return to the menu...${NC}"
+    read
 }
 
 
@@ -221,6 +290,7 @@ select_stuff() {
         8) uninstall_mnu ;;
         9) restart_services ;;
         10) update_files ;;
+        11)reset_credentials ;;
         q) echo -e "${LIGHT_GREEN}Exiting...${NC}" && exit 0 ;;
         *) echo -e "${RED}Wrong choice. Please choose a valid option.${NC}" ;;
     esac
@@ -1056,7 +1126,11 @@ EOL
         echo -e "${RED}[ERROR] Couldn't create config.yaml. Please check for errors.${NC}"
     fi
 
+    echo -e "${CYAN}Restarting wireguard-panel service to apply new configuration...${NC}"
+    sudo systemctl restart wireguard-panel.service && echo -e "${LIGHT_GREEN}✔ wireguard-panel restarted successfully.${NC}" || echo -e "${LIGHT_RED}✘ Failed to restart wireguard-panel service.${NC}"
+
     echo -e "${CYAN}Press Enter to continue...${NC}" && read
+
 }
 
 
@@ -1205,7 +1279,7 @@ sysctl_menu() {
 
 while true; do
     display_menu
-    echo -e "${NC}choose an option [0-10]:${NC} \c"
+    echo -e "${NC}choose an option [0-11]:${NC} \c"
     read -r USER_CHOICE
     select_stuff "$USER_CHOICE"
 done
