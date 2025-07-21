@@ -4,9 +4,9 @@
 
 <br>
 
-<a href="https://github.com/Azumi67/Wireguard-panel/blob/main/README-en.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">English</a>
+<a href="https://github.com/arianking8585/Wireguard-panel/blob/main/README-en.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">English</a>
 <span style="font-size: 16px; color: #555;">•</span>
-<a href="https://github.com/Azumi67/Wireguard-panel/blob/main/README.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">فارسی</a>
+<a href="https://github.com/arianking8585/Wireguard-panel/blob/main/README.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">فارسی</a>
 
 </div>
 
@@ -48,7 +48,7 @@
 - بعدا فایل secret.key هم در قسمت manual backups قرار میدهم. در حال حاضر short links ها به بک اپ manual اضافه شده است
 - دستور فایل bash هم در قسمت پایین قرار میدهم
 ```
-bash <(curl -Ls https://raw.githubusercontent.com/Azumi67/Wireguard-panel/refs/heads/main/short_link.sh --ipv4)
+bash <(curl -Ls https://raw.githubusercontent.com/arianking8585/Wireguard-panel/refs/heads/main/short_link.sh --ipv4)
 
 ```
 - توجه کنید که قبل از استفاده از ورژن جدید، انرا در سروری دیگر تست نمایید تا با مشکلاتی روبرو نشوید. نحوه تبدیل کردن لینک کوتاه سرور قبل در سرور جدید را در قسمت بالا توضیح دادم.
@@ -426,7 +426,7 @@ systemctl stop telegram-bot-en
 - اجرای اسکریپت دانلود
  
 ```
-sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/Azumi67/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
+sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/arianking8585/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
 ```
 
 
@@ -491,7 +491,7 @@ sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL 
 ```
 sudo apt update && sudo apt install git -y
 cd /usr/local/bin
-sudo git clone https://github.com/Azumi67/Wireguard-panel.git
+sudo git clone https://github.com/arianking8585/Wireguard-panel.git
 cd /usr/local/bin/Wireguard-panel
 
 sudo apt install -y python3 python3-pip python3-venv git redis nftables iptables wireguard-tools iproute2 \
@@ -725,7 +725,7 @@ WantedBy=multi-user.target
 
 
 ```
-sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/Azumi67/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
+sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/arianking8585/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
 
 ```
 

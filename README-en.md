@@ -4,9 +4,9 @@
 
 <br>
 
-<a href="https://github.com/Azumi67/Wireguard-panel/blob/main/README-en.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">English</a>
+<a href="https://github.com/arianking8585/Wireguard-panel/blob/main/README-en.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">English</a>
 <span style="font-size: 16px; color: #555;">•</span>
-<a href="https://github.com/Azumi67/Wireguard-panel/blob/main/README.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">Persian</a>
+<a href="https://github.com/arianking8585/Wireguard-panel/blob/main/README.md" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #0078d7;">Persian</a>
 
 </div>
 
@@ -330,7 +330,7 @@ systemctl stop telegram-bot-en
 - Run the script first
  
 ```
-sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/Azumi67/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
+sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/arianking8585/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
 ```
 
 
@@ -394,7 +394,7 @@ sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL 
 ```
 sudo apt update && sudo apt install git -y
 cd /usr/local/bin
-sudo git clone https://github.com/Azumi67/Wireguard-panel.git
+sudo git clone https://github.com/arianking8585/Wireguard-panel.git
 cd /usr/local/bin/Wireguard-panel
 
 sudo apt install -y python3 python3-pip python3-venv git redis nftables iptables wireguard-tools iproute2 \
@@ -621,7 +621,7 @@ WantedBy=multi-user.target
 - Main script to install & update
 
 ```
-sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/Azumi67/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
+sudo apt update && sudo apt install -y curl && apt install git -y && curl -fsSL -o download.sh https://raw.githubusercontent.com/arianking8585/Wireguard-panel/refs/heads/main/download.sh && bash download.sh
 
 ```
 
