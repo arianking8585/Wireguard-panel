@@ -44,7 +44,7 @@ logo=$(cat << "EOF"
       \033[96m   /' /\  \   \033[1;94m  /  ___/ \033[1;92m(:  |  | . )\033[1;93m /\   \/.    |\033[1;91m |:  |   
      \033[96m   //  __'  \  \033[1;94m //  \__  \033[1;92m \  \__/  / \033[1;93m|: \.        | \033[1;91m|.  |   
       \033[96m  /  /  \   \ \033[1;94m(:   / "\ \033[1;92m /\  __  /\ \033[1;93m|.  \    /:  |\033[1;91m /\  |\ 
-      \033[96m(___/    \___) \033[1;94m\_______)\033[1;92m(__________)\033[1;93m|___|\__/|___|\033[1;91m(__\_|_) \033[1;92mAuthor: github.com/Azumi67  \033[0m         
+      \033[96m(___/    \___) \033[1;94m\_______)\033[1;92m(__________)\033[1;93m|___|\__/|___|\033[1;91m(__\_|_) \033[1;92mAuthor: github.com/arianking8585  \033[0m
 EOF
 )
 display_logo() {
@@ -298,7 +298,7 @@ select_stuff() {
 
 update_files() {
     install_newupdate
-    REPO_URL="https://github.com/Azumi67/Wireguard-panel.git"
+    REPO_URL="https://github.com/arianking8585/Wireguard-panel.git"
     TMP_DIR="/tmp/wireguard-panel-update"
     SCRIPT_DIR="/usr/local/bin/Wireguard-panel"
 
