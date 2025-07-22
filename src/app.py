@@ -76,7 +76,7 @@ def load_config():
         config.setdefault("flask", {}).setdefault("tls", False)
         config.setdefault("flask", {}).setdefault("cert_path", "")
         config.setdefault("flask", {}).setdefault("key_path", "")
-        config.setdefault("flask", {}).setdefault("secret_key", "azumiisinyourarea")
+        config.setdefault("flask", {}).setdefault("secret_key", "Aminisinyourarea")
         config.setdefault("flask", {}).setdefault("debug", False)
 
         return config

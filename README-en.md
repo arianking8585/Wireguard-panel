@@ -444,7 +444,7 @@ flask:
   tls: true
   cert_path: "/etc/letsencrypt/live/subdomain.com/fullchain.pem"
   key_path: "/etc/letsencrypt/live/subdomain.com/privkey.pem"
-  secret_key: "azumi"
+  secret_key: "Amin"
   debug: false
 
 gunicorn:
@@ -527,7 +527,7 @@ WantedBy=multi-user.target
 ------------------------------------ 
 
 - To create a user, follow the same process as before, but at the bottom, check the "Add in bulk" box and enter the number of users (should not exceed 50, for example, 10 is good).
-- First, give the username, for example, "azumi," then select the user's private IP, and choose the other options as before. Make sure to check the "Add in bulk" box and specify the number of users.
+- First, give the username, for example, "Amin," then select the user's private IP, and choose the other options as before. Make sure to check the "Add in bulk" box and specify the number of users.
 - To display the short link, click on the link and wait for the confirmation message. If the short link exists, you will receive a "success" message.
 - The same applies for the bot.
 - Click on "bulk," then enter the number of users and the name.

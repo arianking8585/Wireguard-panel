@@ -541,7 +541,7 @@ flask:
   tls: true
   cert_path: "/etc/letsencrypt/live/subdomain.com/fullchain.pem"
   key_path: "/etc/letsencrypt/live/subdomain.com/privkey.pem"
-  secret_key: "azumi"
+  secret_key: "Amin"
   debug: false
 
 gunicorn:
@@ -629,7 +629,7 @@ WantedBy=multi-user.target
   <img src="https://github.com/user-attachments/assets/65d942c7-3ab1-43f0-9231-dcaa79dd6636" alt="Image" />
 </p>
 
-- نخست نام کاربر مثلا azumi را میدهید و بعد ایپی پرایوت کاربر را انتخاب کنید و سایر موارد هم مانند قبل انتخاب کنید و تیک اضافه کردن گروهی را بزنید و تعداد کاربر بدهید
+- نخست نام کاربر مثلا Amin را میدهید و بعد ایپی پرایوت کاربر را انتخاب کنید و سایر موارد هم مانند قبل انتخاب کنید و تیک اضافه کردن گروهی را بزنید و تعداد کاربر بدهید
 <p align="right">
   <img src="https://github.com/user-attachments/assets/8760aadf-499c-4faf-aad3-cdf83468d1b2" alt="Image" />
 </p>

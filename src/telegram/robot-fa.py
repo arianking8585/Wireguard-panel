@@ -404,27 +404,13 @@ async def start(update: Update = None, context: CallbackContext = None, chat_id:
     notifications_enabled = context.bot_data.get("notifications_enabled", False)  
     notification_status = "✅ فعال" if notifications_enabled else "❌ غیرفعال"
 
-    caption_text = (
-        f"<b>به ربات مدیریت وایرگارد خوش آمدید</b>\n\n"
-        f"{status_message}\n"
-        f"📢 اعلان‌ها: {notification_status}\n\n"
-        f"<i>لطفاً یکی از گزینه‌های زیر را انتخاب کنید:</i>"
-    )
+    caption_text = "ربات ساخت کانفیگ وایرگارد🤖"
 
     keyboard = [
-        [
-            InlineKeyboardButton("🔕 غیرفعال کردن اعلان‌ها", callback_data="disable_notifications"),
-            InlineKeyboardButton("🔔 فعال کردن اعلان‌ها", callback_data="enable_notifications"),
-        ],
-        [
-            InlineKeyboardButton("📊 آمار", callback_data="metrics"),
-            InlineKeyboardButton("👥 کاربران", callback_data="peers_menu"),
-        ],
-        [
-            InlineKeyboardButton("⚙️ تنظیمات", callback_data="settings_menu"),
-            InlineKeyboardButton("📦 پشتیبان‌ها", callback_data="backups_menu"),
-        ],
-        [InlineKeyboardButton("📝 گزارشات", callback_data="view_logs")],
+        [InlineKeyboardButton("📊 آمار", callback_data="metrics")],
+        [InlineKeyboardButton("👥 کاربران", callback_data="peers_menu")],
+        [InlineKeyboardButton("⚙️ تنظیمات", callback_data="settings_menu")],
+        [InlineKeyboardButton("📦 پشتیبان‌ها", callback_data="backups_menu")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1159,10 +1145,6 @@ async def peers_menu(update: Update, context: CallbackContext):
             InlineKeyboardButton("🔒 مسدود/باز کردن کاربر", callback_data="block_unblock_peer"),
             InlineKeyboardButton("🔍 وضعیت کاربر", callback_data="peer_status"),
         ],
-        [
-            InlineKeyboardButton("📄 مشاهده قالب", callback_data="view_template"),
-            InlineKeyboardButton("⬇️ دانلود / کد QR", callback_data="download_qr_menu"),
-        ],
         [InlineKeyboardButton("🔙 بازگشت به منوی اصلی", callback_data="main_menu")],
     ]
 
@@ -1176,7 +1158,7 @@ async def download_qr_menu(update: Update, context: CallbackContext):
     await query.answer()
     await query.message.reply_text(
         "✏️ *نام کاربر را وارد نمایید* \n\n"
-        "مثال : azumi",
+        "مثال : Amin",
         parse_mode="Markdown"
     )
     return VIEW_PEER_DETAILS
@@ -1494,11 +1476,7 @@ async def interface_select(update: Update, context: CallbackContext):
         f"🔑 **کلید عمومی:** `{matched_peer['public_key']}`\n"
         f"⚡ **وضعیت:** {'🟢 فعال' if not matched_peer['expiry_blocked'] else '🔴 مسدود'}\n"
     )
-    keyboard = [
-        [InlineKeyboardButton("📄 دانلود تنظیمات", callback_data=f"download_create_{matched_peer['peer_name']}")],
-        [InlineKeyboardButton("📷 تولید کد QR", callback_data=f"qr_create_{matched_peer['peer_name']}")],
-        [InlineKeyboardButton("🔙 بازگشت به انتخاب اینترفیس", callback_data="download_qr_menu")],
-    ]
+    keyboard = [[InlineKeyboardButton("🔙 بازگشت به منوی کاربران", callback_data="peers_menu")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.message.reply_text(peer_details, reply_markup=reply_markup, parse_mode="Markdown")
@@ -1728,7 +1706,7 @@ async def select_interface_delete(update: Update, context: CallbackContext):
 
     await query.message.reply_text(
         "✏️ *نام کاربری که می‌خواهید حذف کنید را وارد کنید:* (از حروف فارسی استفاده نکنید)\n\n"
-        "مثال: `azumi`",
+        "مثال: `Amin`",
         parse_mode="Markdown"
     )
     return ENTER_PEER_NAME
@@ -2079,7 +2057,7 @@ async def choose_ip(update: Update, context: CallbackContext):
     else:
         await query.message.reply_text(
             "✏️ *نام کاربر را وارد کنید:* (از حروف فارسی استفاده نکنید)\n\n"
-            "مثال: `azumi`",
+            "مثال: `Amin`",
             parse_mode="Markdown"
         )
         return INPUT_PEER_NAME
@@ -2093,7 +2071,7 @@ async def write_bulk_count(update: Update, context: CallbackContext):
     context.user_data["bulk_count"] = int(count_text)
     await update.message.reply_text(
         "✏️ *نام کاربر را وارد کنید:* (از حروف فارسی استفاده نکنید)\n\n"
-        "مثال: `azumi`",
+        "مثال: `Amin`",
         parse_mode="Markdown"
     )
     return INPUT_PEER_NAME
@@ -2408,7 +2386,7 @@ async def select_reset_interface(update: Update, context: CallbackContext):
 
     await query.message.reply_text(
         "✏️ *نام کاربری که می‌خواهید ترافیک یا انقضای آن را ریست کنید وارد کنید:* (از حروف فارسی استفاده نکنید)\n\n"
-        "مثال: `azumi`",
+        "مثال: `Amin`",
         parse_mode="Markdown"
     )
     return ENTER_RESET_PEER_NAME
@@ -2570,7 +2548,7 @@ async def search_peername(update: Update, context: CallbackContext):
     await update.callback_query.answer()
     await update.callback_query.message.reply_text(
         "✏️ *نام کاربری که می‌خواهید ترافیک یا انقضای آن را ریست کنید وارد کنید:* (از حروف فارسی استفاده نکنید)\n\n"
-        "مثال: `azumi`",
+        "مثال: `Amin`",
         parse_mode="Markdown"
     )
     return STATE_SEARCH_PEER
@@ -2982,7 +2960,7 @@ async def init_status_interface(update: Update, context: CallbackContext):
 
     await query.message.reply_text(
         "✏️ *نام کاربری که می‌خواهید وضعیت آن را بررسی کنید وارد کنید:* (از حروف فارسی استفاده نکنید)\n\n"
-        "مثال: `azumi`",
+        "مثال: `Amin`",
         parse_mode="Markdown"
     )
     return INPUT_PEER_NAME_STATUS
