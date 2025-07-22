@@ -1278,7 +1278,7 @@ async def download_qr_menu(update: Update, context: CallbackContext):
     await query.answer()
     await query.message.reply_text(
         "✏️ *Enter the Peer Name to search for:* \n\n"
-        "Example: `azumi` (Don't use Persian characters).",
+        "Example: `Amin` (Don't use Persian characters).",
         parse_mode="Markdown"
     )
     return VIEW_PEER_DETAILS
@@ -1707,7 +1707,7 @@ async def select_interface_delete(update: Update, context: CallbackContext):
 
     await query.message.reply_text(
         "✏️ *Enter the Peer Name you want to delete:* (Don't use Persian characters)\n\n"
-        "Example: `azumi`",
+        "Example: `Amin`",
         parse_mode="Markdown"
     )
     return ENTER_PEER_NAME
@@ -2055,7 +2055,7 @@ async def choose_ip(update: Update, context: CallbackContext):
     else:
         await query.message.reply_text(
             "✏️ *Enter the username:* (Do not use Persian characters)\n\n"
-            "Example: `azumi`",
+            "Example: `Amin`",
             parse_mode="Markdown"
         )
         return INPUT_PEER_NAME
@@ -2069,7 +2069,7 @@ async def write_bulk_count(update: Update, context: CallbackContext):
     context.user_data["bulk_count"] = int(count_text)
     await update.message.reply_text(
         "✏️ *Enter the username:* (Do not use Persian characters)\n\n"
-        "Example: `azumi`",
+        "Example: `Amin`",
         parse_mode="Markdown"
     )
     return INPUT_PEER_NAME
@@ -2385,7 +2385,7 @@ async def select_reset_interface(update: Update, context: CallbackContext):
 
     await query.message.reply_text(
         "✏️ *Enter the Peer Name for which you want to reset traffic or expiry:* (No Persian)\n\n"
-        "Example: `azumi`",
+        "Example: `Amin`",
         parse_mode="Markdown"
     )
     return ENTER_RESET_PEER_NAME
@@ -2544,7 +2544,7 @@ async def search_peername(update: Update, context: CallbackContext):
     await update.callback_query.answer()
     await update.callback_query.message.reply_text(
         "✏️ *Enter the peer name you want to reset traffic or expiry for:* (Do not use Persian letters)\n\n"
-        "Example: `azumi`",
+        "Example: `Amin`",
         parse_mode="Markdown"
     )
     return STATE_SEARCH_PEER
@@ -2958,7 +2958,7 @@ async def init_status_interface(update: Update, context: CallbackContext):
 
     await query.message.reply_text(
         "✏️ *Enter the name of the peer you want to check:* (No Persian)\n\n"
-        "Example: `azumi`",
+        "Example: `Amin`",
         parse_mode="Markdown"
     )
     return INPUT_PEER_NAME_STATUS

@@ -70,7 +70,7 @@ if [[ "$PROTOCOL" != "http" && "$PROTOCOL" != "https" ]]; then
     exit 1
 fi
 
-read -p "$(echo -e ${YELLOW}"Enter new domain ${GREEN}(e.g., 198.198.198.198 ${YELLOW}or azumi.com): "${NC})" NEW_DOMAIN
+read -p "$(echo -e ${YELLOW}"Enter new domain ${GREEN}(e.g., 198.198.198.198 ${YELLOW}or Amin.com): "${NC})" NEW_DOMAIN
 if [ -z "$NEW_DOMAIN" ]; then
     echo -e "${RED}Domain or IP cannot be empty.${NC}"
     exit 1
